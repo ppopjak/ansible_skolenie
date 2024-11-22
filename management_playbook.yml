@@ -1,0 +1,31 @@
+---
+- name: management playbook
+  hosts:
+    - ubuntu
+    # - debian
+    # - redhat
+  gather_facts: yes
+  vars:
+    bg_url: https://thumbs.dreamstime.com/z/colorful-graphs-charts-marketing-research-business-annual-report-background-management-project-budget-planning-financial-68703388.jpg 
+    bg_dir: Pictures 
+    group: manageri 
+    docker_users:
+      - root 
+      - ubuntu 
+      
+  vars_files:
+    - passwds.yml
+
+  tasks:
+    - name: Download {{group}}_bg image
+      get_url:
+        url: "{{ bg_url }}"
+        dest: "{{ ansible_user_dir }}/{{ bg_dir }}/{{ group }}_bg.jpg"
+      tags:
+        - background
+        - group 
+
+  roles:
+    - common
+    - dev
+    - office 

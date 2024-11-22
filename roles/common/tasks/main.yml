@@ -1,0 +1,82 @@
+---
+# tasks file for common
+- name: Install php prerequisities
+  become: true
+  apt:
+    name:
+      - ca-certificates
+      - apt-transport-https
+      - software-properties-common
+    state: present
+    update_cache: yes
+  tags:
+    - packages
+
+- name: Add php repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: ppa:ondrej/php
+    state: present
+  tags:
+    - packages
+
+# sudo apt-get update && sudo apt-get install htop vim kazam filezilla bluefish
+- name: Install all packages
+  become: true
+  apt:
+    name: 
+      - htop
+      - vim
+      - kazam
+      - filezilla
+      - bluefish
+      - php8.4
+    state: present
+    update_cache: yes
+  tags:
+    - packages
+
+- name: Check php version
+  shell: php --version
+  register: php_version_out
+  tags:
+    - packages
+    - debug
+
+- name: Display php version
+  debug:
+    var: php_version_out.stdout_lines[0]
+  tags:
+    - packages
+    - debug
+
+- name: "Create {{ bg_dir }} dir"
+  file:
+    path: "{{ ansible_user_dir }}/{{ bg_dir }}"
+    state: directory
+  tags:
+    - background
+
+- name: Download bg image
+  get_url:
+    url: "{{ bg_url }}"
+    dest: "{{ ansible_user_dir }}/{{ bg_dir }}/bg.jpg"
+  tags:
+    - background
+
+- name: Create cpu.txt
+  template:
+    src: cpu.txt.j2
+    dest: /tmp/cpu.txt
+  tags:
+    - template
+
+- name: Generate servers TXTs
+  template:
+    src: servers.txt.j2
+    dest: "/tmp/{{ server }}.txt"
+  loop: "{{ servers }}"
+  loop_control:
+    loop_var: server
+  tags:
+    - template

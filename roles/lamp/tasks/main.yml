@@ -1,0 +1,31 @@
+---
+# tasks file for lamp 
+- include_tasks: ubuntu.yml
+  when: ansible_distribution == "Ubuntu"
+
+- include_tasks: debian.yml
+  when: ansible_distribution == "Debian"
+
+- include_tasks: rhel.yml
+  when: ansible_distribution == "RedHat"
+
+- name: Deploy block
+  become: true 
+  block: 
+    - name: "Delete {{ file_del }}"
+      file: 
+       dest: "/var/www/html/{{ file_del }}"
+       state: absent
+    
+    - name: "Deploy {{ file_deploy }}"
+      copy: 
+       src: "{{ file_deploy }}" 
+       dest: /var/www/html/ 
+  tags:
+    - packages 
+  
+- debug: 
+    msg: nieco nefici 
+  when: false 
+  tags: 
+    - test 

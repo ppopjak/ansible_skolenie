@@ -1,0 +1,104 @@
+---
+# tasks file for mariadb configuration on Ubuntu
+- name: Become block
+  become: true 
+  block:
+    - name: Install phpmyadmin
+      apt:
+        name: 
+          - phpmyadmin
+          - php8.3-mbstring
+          #- python3-pymysql
+          - python3-pip
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install PyMySQL
+      ansible.builtin.pip:
+        name: PyMySQL
+        state: present
+        executable: pip3
+
+    - name: Include phpmyadmin config in apache config
+      ansible.builtin.lineinfile:
+        path: /etc/apache2/apache2.conf
+        regexp: '^Include .*phpmyadmin.*\.conf$'
+        insertafter: Include ports.conf
+        line: Include /etc/phpmyadmin/apache.conf
+      notify:
+        - restart apache
+
+    # - name: Generate root password
+    #   shell: openssl rand -base64 12
+    #   register: pass_out
+    #   tags: passwd
+
+    # - debug:
+    #     var: pass_out
+    #   tags: passwd
+
+    # - block:
+    #     - name: Check if /root/.my.cnf exists
+    #       shell: stat /root/.my.cnf
+    #     - set_fact:
+    #         file_exists: true
+    #   rescue:
+    #     - debug:
+    #         msg: File doesn't exist
+    #     - set_fact:
+    #         file_exists: false
+
+    - name: Check if /root/.my.cnf exists
+      ansible.builtin.stat:
+        path: /root/.my.cnf
+      register: st
+      tags: st
+
+    - name: Execute only when db not configured
+      when: not st.stat.exists
+      block:
+        - name: Generate password
+          set_fact:
+            root_pass: "{{ lookup('ansible.builtin.password', '/dev/null', length=8, chars=['ascii_letters', 'digits']) }}"
+          tags: passwd
+
+        - debug:
+            var: root_pass
+          tags: passwd
+          
+        - name: Create /root/.my.cnf
+          template:
+            src: my.cnf.j2
+            dest: /root/.my.cnf
+
+        - name: Set root password
+          community.mysql.mysql_user:
+            name: root
+            password: "{{ root_pass }}"
+            priv: '*.*:ALL,GRANT'
+            host: "{{ host }}"
+            state: present
+            login_unix_socket: /run/mysqld/mysqld.sock
+          loop: "{{ db_hosts }}"
+          loop_control:
+            loop_var: host
+
+        - name: Removes anonymous user account for localhost
+          community.mysql.mysql_user:
+            name: ''
+            host: localhost
+            state: absent
+            login_unix_socket: /run/mysqld/mysqld.sock
+
+        - name: Remove test db
+          community.mysql.mysql_db:
+            name: test
+            state: absent
+            login_unix_socket: /run/mysqld/mysqld.sock
+
+    - name: Print info message
+      when: st.stat.exists
+      debug:
+        msg: Skipping setting db, already set.
+

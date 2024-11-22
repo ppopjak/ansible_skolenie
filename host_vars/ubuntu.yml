@@ -1,0 +1,4 @@
+ansible_connection: local 
+ansible_host: 18.197.254.201
+ansible_user: ubuntu
+ansible_become_pass: "{{ ubuntu_pass }}" 	#pripojenie pre ubuntu lokalne - priklad pre ssh: "ansible_host=127.0.0.1 ansible_port=22 ansible_user=ubuntu"

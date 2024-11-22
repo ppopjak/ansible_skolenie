@@ -1,0 +1,43 @@
+---
+# tasks file for common
+- name: Install libreoffice & pidgin 
+  become: true
+  apt:
+    name: 
+      - libreoffice
+      - pidgin
+    state: present
+    update_cache: yes
+    cache_valid_time: 600
+  tags:
+    - packages
+    - install 
+
+- name: Check libreoffice version
+  shell: libreoffice --version
+  register: libreoffice_version_out
+  tags:
+    - packages
+    - debug
+
+- name: Display libreoffice version
+  debug:
+    var: libreoffice_version_out.stdout_lines[0]
+  tags:
+    - packages
+    - debug
+
+- name: Check pidgin version
+  shell: pidgin --version
+  register: pidgin_version_out
+  tags:
+    - packages
+    - debug
+
+- name: Display pidgin version
+  debug:
+    var: pidgin_version_out.stdout_lines[0]
+  tags:
+    - packages
+    - debug
+

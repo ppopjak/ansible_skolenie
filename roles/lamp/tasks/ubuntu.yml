@@ -1,0 +1,39 @@
+---
+# tasks file for ubuntu
+- name: Block install ubuntu 
+  become: true 
+  tags: 
+    - packages 
+  block:
+  - name: Install php prerequisities
+    apt:
+      name:
+        - ca-certificates
+        - apt-transport-https
+        - software-properties-common
+      state: present
+      update_cache: yes
+    
+  - name: Add php repository
+    ansible.builtin.apt_repository:
+      repo: ppa:ondrej/php
+      state: present
+    
+  - name: Install all packages
+    apt:
+      name: 
+        - apache2 
+        - php8.3
+        - php8.3-mysql 
+        - mariadb-server
+        - mariadb-client
+      state: present
+      update_cache: yes
+    notify: 
+      - start apache
+      - start mariadb 
+    
+- debug: 
+    msg: ubuntu packages installed 
+  tags: 
+    - packages  

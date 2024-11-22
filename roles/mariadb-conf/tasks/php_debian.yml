@@ -1,0 +1,25 @@
+---
+# tasks file for mariadb configuration on Debian
+- name: Prepare phpmyadmin
+  become: true
+  tags:
+    - packages 
+  block:
+    - name: Install phpmyadmin
+      apt: 
+        name: 
+          - php8.3-gettext
+          - php8.3-mbstring
+          - phpmyadmin 
+        state: present
+        update_cache: yes 
+    
+    - name: Enable phpmyadmin
+      lineinfile: 
+        path: /etc/apache2/apache2.conf
+        regexp: '^Include .*phpmyadmin.*\.conf$' 
+        insertafter: 'Include ports.conf'
+        line: 'Include /etc/phpmyadmin/apache.conf' 
+      notify:
+        - restart apache2 
+        

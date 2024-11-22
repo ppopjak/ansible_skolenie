@@ -1,0 +1,20 @@
+---
+- name: lamp playbook
+  hosts:
+    - ubuntu
+    # - debian 
+    # - webservers 
+    # - rhel 
+  gather_facts: yes
+  vars: 
+    file_del: index.html
+    file_deploy: index.php
+    db_pass: wordpress1
+
+  vars_files:
+    - vars/passwds.yml
+
+  roles:
+    - lamp
+    - mariadb-conf
+    - wordpress

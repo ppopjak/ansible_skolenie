@@ -1,0 +1,64 @@
+---
+# tasks file for wordpress
+
+- name: Become block 
+  become: true 
+  tags: wordpress
+  block:
+    - name: Download wordpress 
+      ansible.builtin.get_url:
+        url: https://wordpress.org/latest.zip
+        dest: /tmp/wordpress/latest.zip
+        checksum: sha1:https://wordpress.org/latest.zip.sha1 
+    
+    - name: Install unzip 
+      apt: 
+        name: unzip
+        state: present 
+        update_cache: yes 
+        cache_valid_time: 3600 
+
+    - name: Unzip wordpress 
+      ansible.builtin.unarchive:
+        src: /tmp/wordpress/latest.zip
+        dest: /tmp/wordpress 
+        remote_src: yes # 
+
+    - name: Copy zip to right dest 
+      copy: 
+        src: /tmp/wordpress/wordpress
+        dest: /var/www/html 
+        remote_src: yes 
+
+    - name: Create DB wordpress
+      community.mysql.mysql_db:
+        name: wordpress
+        state: present 
+        login_unix_socket: /run/mysqld/mysqld.sock
+
+    - name: Create user wordpress
+      community.mysql.mysql_user:
+        name: wordpress
+        password: wordpress
+        priv: 'wordpress.*:ALL'
+        state: present
+        login_unix_socket: /run/mysqld/mysqld.sock    
+
+    - name: Create wp-config.php 
+      copy: 
+        src: /var/www/html/wordpress/wp-config-sample.php
+        dest: /var/www/html/wordpress/wp-config.php
+        remote_src: yes  
+    
+    - name: Update wp-config.php 
+      replace: 
+        path: /var/www/html/wordpress/wp-config.php
+        regexp: "{{ item.path }}"
+        replace: "{{ item.replace }}"
+      loop:
+        - path: database_name_here
+          replace: "{{ db_name }}"  
+        - path: username_here
+          replace: "{{ db_user }}"  
+        - path: password_here
+          replace: "{{ db_pass }}"  

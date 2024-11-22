@@ -1,0 +1,9 @@
+---
+# defaults file for common
+servers:
+  - galaxy
+  - vulcan
+  - ameros
+  - virgo
+bg_url: https://cdn.wallpapersafari.com/55/73/ghY4rc.jpg
+bg_dir: Pictures

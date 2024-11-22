@@ -1,0 +1,45 @@
+---
+# tasks file for RedHat
+- name: Block istall for rhel
+  become: true
+  tags: 
+    - packages
+  block:
+  # - name: Enable EPEL repo   
+  #   command: subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
+
+  # - name: Enable all repo codeready-builder-for-rhel-9
+  #   rhsm_repository:
+  #     name: "codeready-builder-for-rhel-9-{{ ansible_architecture }}-rpms"
+  #     state: enabled
+  
+  - name: Install PHP dependencies packages
+    dnf:
+      name: 
+        - epel-release 
+        - 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm'
+        - 'https://rpms.remirepo.net/enterprise/remi-release-9.rpm'
+      disable_gpg_check: true
+      state: present
+      enablerepo: hp:remi-8.3
+      update_cache: yes
+
+  # - name: Enable repo php
+  #   command: dnf module install php:remi-8.3 -y 
+
+  - name: Install httpd and mariadb
+    dnf:
+      name: 
+        - php 
+        - httpd 
+        - mariadb-server
+      state: present
+      update_cache: yes
+    notify: 
+    - start httpd
+    - start mariadb 
+  
+- debug: 
+    msg: rhel packages installed   
+  tags: 
+    - packages  

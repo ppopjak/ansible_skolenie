@@ -1,0 +1,53 @@
+---
+# tasks file for debian
+- name: Block istall for debian
+  become: true
+  tags: 
+    - packages
+  block:
+  - name: Install php prerequisities
+    apt:
+      name:
+        - ca-certificates
+        - apt-transport-https
+        - lsb-release
+        - wget
+      state: present
+      update_cache: yes
+      cache_valid_time: 600
+    
+  - name: Add PHP's official GPG key
+    get_url:
+      url: https://packages.sury.org/php/apt.gpg
+      dest: /etc/apt/trusted.gpg.d/php.gpg
+      mode: '0644'  # Setting permissions for the key file
+    
+  - name: Get lsb_release  
+    command: lsb_release -sc 
+    register: lsb_release
+
+  - name: Add PHP repository to Apt sources 
+    apt_repository: 
+      repo: "deb https://packages.sury.org/php/ {{ lsb_release.stdout }} main"
+      filename: /etc/apt/sources.list.d/php.list
+      state: present 
+    
+  - name: Install all packages
+    apt:
+      name: 
+        - apache2 
+        - php8.3
+        - php8.3-mysql 
+        - mariadb-server
+        - mariadb-client
+      state: present
+      update_cache: yes
+      cache_valid_time: 600
+    notify: 
+      - start apache
+      - start mariadb 
+    
+- debug: 
+    msg: debian packages installed   
+  tags: 
+    - packages  
